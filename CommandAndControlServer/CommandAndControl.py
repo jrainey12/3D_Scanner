@@ -92,7 +92,7 @@ def vlcView():
 
 def stopRemotePro():
 	"""stop the capture program in raspberry pi"""
-        capturePID = remoteRPI('pidof capture',isInfo=False, isPID=True)
+        capturePID = remoteRPI('pidof raspivid',isInfo=False, isPID=True)
         if capturePID: #kill the remote process when the pid returned is not zero
 		    killcommand = 'kill -9 {pid}'.format(pid=capturePID)
 		    remoteRPI(killcommand,isInfo=True, isPID=False)
@@ -154,7 +154,7 @@ def main():
   
     videoName = ''.join(['/home/james/Videos/collection/StreamVideo-',time.strftime("%y%m%d-%H%M%S")])   
     remoteRPI('cd ~/Documents/boneCV; ./streamVideoUDP',isInfo=False, isPID=False)
-    cmd1 = "socat  -d -d -d -u -T 20 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"
+    cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"
     
     process1 = Popen(cmd1, shell=True)
     process1.wait()

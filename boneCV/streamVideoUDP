@@ -3,7 +3,7 @@ echo "Video Streaming for the Beaglebone - derekmolloy.ie"
 echo "Piping the output of capture to avconv"
 
 # Next line not necessary if you are using my -F option on capture
-v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=1
+#v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=1
 
 # Pipe the output of capture into avconv/ffmpeg 
 # capture "-F"   My H264 passthrough mode
@@ -12,6 +12,14 @@ v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=1
 # avconv "-re" read input at the native frame rate
 #        "-i -"  Take the input from the pipe
 #	 "-vcodec copy" Do not transcode the video
-# 	 "-f rtp rtp://192.168.0.100:1234/" Force rtp to output to address of my PC on port 1234
+# 	 "-f rtp rtp://10.42.0.1:1234/" Force rtp to output to address of my PC on port 1234
 
-./capture -F -o -c300|avconv -re -i - -vcodec copy -f mpegts udp://192.168.0.100:1234
+#For use with raspberry pi camera module
+raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+
+#Failed attempts
+#raspivid -o - -t 10000  |avconv -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+#raspivid -t 10000 -o - | socat udp-sendto:192.168.1.238:1234
+#For use with Logitech c920
+./capture -F -o -c300|avconv -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+#./capture -F -c300 -o|avconv -re -i - -vcodec copy socat UDP4-SENDTO:10.42.0.1:1234
