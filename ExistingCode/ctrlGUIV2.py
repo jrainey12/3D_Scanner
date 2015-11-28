@@ -152,7 +152,7 @@ def initUI(self):
 """the global variables"""
 #list details of the connections
 #hosts = ['192.168.0.13,root,root','192.168.0.102,pi,raspberry']
-hosts = ['10.42.0.25,pi,raspberry','192.168.0.102,pi,raspberry']
+hosts = ['10.42.0.21,pi,raspberry','192.168.0.102,pi,raspberry']
 
 #connection with beaglebone
 remoteBBB = connecthosts(hosts[0], 'Beaglebone Black')

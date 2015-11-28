@@ -9,7 +9,7 @@ import time
 
 connections = [] #remote ssh connections
 #list details of the connections
-hosts = ['10.42.0.25,pi,raspberry']
+hosts = ['192.168.1.68,pi,raspberry']
 
 #close all the SSH connections, and processes
 
@@ -84,7 +84,7 @@ def stop():
 
 def vlcView():
     """run the capture.c file in remote system with """
-    remoteRPI('cd ~/Documents/boneCV; ./streamVideoUDP_infinite',isInfo=False, isPID=False)
+    remoteRPI('cd ~/boneCV; ./streamVideoUDP_infinite',isInfo=False, isPID=False)
     p = vlc.MediaPlayer('udp://@:1234')
     p.play()
     #call(['cvlc', 'udp://@:1234', '--play-and-exit']) #this one blocks the interface
@@ -96,6 +96,7 @@ def stopRemotePro():
         if capturePID: #kill the remote process when the pid returned is not zero
 		    killcommand = 'kill -9 {pid}'.format(pid=capturePID)
 		    remoteRPI(killcommand,isInfo=True, isPID=False)
+		    
 		    
 		    
 
@@ -153,7 +154,7 @@ def main():
     """start the StreamVideoUDP program in Raspberry Pi and record the live video to the 'collection' folder"""
   
     videoName = ''.join(['/home/james/Videos/collection/StreamVideo-',time.strftime("%y%m%d-%H%M%S")])   
-    remoteRPI('cd ~/Documents/boneCV; ./streamVideoUDP',isInfo=False, isPID=False)
+    remoteRPI('cd ~/boneCV; ./streamVideoUDP',isInfo=False, isPID=False)
     cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"
     
     process1 = Popen(cmd1, shell=True)

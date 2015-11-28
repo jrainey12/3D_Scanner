@@ -15,11 +15,16 @@ echo "Piping the output of capture to avconv"
 # 	 "-f rtp rtp://10.42.0.1:1234/" Force rtp to output to address of my PC on port 1234
 
 #For use with raspberry pi camera module
-raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+#Laptop shared connection
+#raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+
+#Swtch connection
+raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://192.168.1.238:1234
+
 
 #Failed attempts
 #raspivid -o - -t 10000  |avconv -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
 #raspivid -t 10000 -o - | socat udp-sendto:192.168.1.238:1234
 #For use with Logitech c920
-./capture -F -o -c300|avconv -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+#./capture -F -o -c300|avconv -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
 #./capture -F -c300 -o|avconv -re -i - -vcodec copy socat UDP4-SENDTO:10.42.0.1:1234
