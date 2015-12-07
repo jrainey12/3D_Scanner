@@ -8,9 +8,9 @@ from subprocess import *
 import time
 
 connections = [] #remote ssh connections
-raspberryPIs = ['rPi1, rPi2, rPi3'] #Raspberry PIs
+#raspberryPIs = ['rPi1', 'rPi2', 'rPi3'] #Raspberry PIs
 #list details of the connections
-hosts = ['10.42.0.25,pi,raspberry','10.42.0.25,pi,raspberry','10.42.0.25,pi,raspberry']
+hosts = ['10.42.0.88,pi,raspberry','10.42.0.72,pi,raspberry','10.42.0.89,pi,raspberry']
 
 #close all the SSH connections, and processes
 
@@ -93,12 +93,31 @@ def vlcView():
 
 def stopRemotePro():
 	"""stop the capture program in raspberry pi"""
-        capturePID = remoteRPI('pidof capture',isInfo=False, isPID=True)
-        if capturePID: #kill the remote process when the pid returned is not zero
-		    killcommand = 'kill -9 {pid}'.format(pid=capturePID)
-		    #remoteRPI(killcommand,isInfo=True, isPID=False)
+        capturePID1 = remoteRPI1('pidof capture',isInfo=False, isPID=True)
+        if capturePID1: #kill the remote process when the pid returned is not zero
+		    killcommand = 'kill -9 {pid}'.format(pid=capturePID1)
+		    remoteRPI1(killcommand,isInfo=True, isPID=False)
 		    
+	capturePID2 = remoteRPI2('pidof capture',isInfo=False, isPID=True)
+        if capturePID2: #kill the remote process when the pid returned is not zero
+		    killcommand = 'kill -9 {pid}'.format(pid=capturePID2)
+		    remoteRPI2(killcommand,isInfo=True, isPID=False)
 		    
+	capturePID3 = remoteRPI3('pidof capture',isInfo=False, isPID=True)
+        if capturePID3: #kill the remote process when the pid returned is not zero
+		    killcommand = 'kill -9 {pid}'.format(pid=capturePID3)
+		    remoteRPI3(killcommand,isInfo=True, isPID=False)
+		    
+
+def captureImage():
+	
+	"""capture image"""
+        ImageName = ''.join(['/home/james/Pictures/collection/Image-',time.strftime("%y%m%d-%H%M%S")])   
+        remoteRPI('cd ~/boneCV; ./captureImage',isInfo=False, isPID=False)
+        cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + ImageName + ",creat,append"
+    
+        process2 = Popen(cmd1, shell=True)
+        process2.wait()   
 
 
 
@@ -129,6 +148,14 @@ class Window(QtGui.QWidget):
         self.button3.move(50, 200)
         layout.addWidget(self.button3)
         
+         
+        #Button to capture image
+        self.button5 = QtGui.QPushButton('Capture Image', self)
+        self.button5.clicked.connect(captureImage)
+        self.button5.resize(self.button5.sizeHint())        
+        self.button5.move(200, 200)
+        layout.addWidget(self.button5)
+        
         #Button to close SSH connections to pi
         self.button4 = QtGui.QPushButton('Disconnect', self)
         self.button4.clicked.connect(stop)
@@ -138,15 +165,21 @@ class Window(QtGui.QWidget):
         
        
         
-for pi in raspberryPIs:
-	position = 0
-	pi = connecthosts(hosts[position], 'Raspberry Pi' + str((position + 1))) 
-	pi('uptime', isInfo=True, isPID=False)
-	position += 1
+#for pi in raspberryPIs:
+#	position = 0
+#	pi = connecthosts(hosts[position], 'Raspberry Pi' + str((position + 1))) 
+#	pi('uptime', isInfo=True, isPID=False)
+#	position += 1
 	 
-#connection with raspberry pi
-#remoteRPI = connecthosts(hosts[0], 'Raspberry Pi')
-#remoteRPI('uptime', isInfo=True, isPID=False)
+#connection with raspberry pis
+remoteRPI1 = connecthosts(hosts[0], 'Raspberry Pi 1')
+remoteRPI1('uptime', isInfo=True, isPID=False)
+
+remoteRPI2 = connecthosts(hosts[1], 'Raspberry Pi 2')
+remoteRPI2('uptime', isInfo=True, isPID=False)
+
+remoteRPI3 = connecthosts(hosts[2], 'Raspberry Pi 3')
+remoteRPI3('uptime', isInfo=True, isPID=False)
 
 
 
@@ -159,8 +192,10 @@ def main():
     """start the StreamVideoUDP program in Raspberry Pi and record the live video to the 'collection' folder"""
   
     videoName = ''.join(['/home/james/Videos/collection/StreamVideo-',time.strftime("%y%m%d-%H%M%S")])   
-    #remoteRPI('cd ~/Documents/boneCV; ./streamVideoUDP',isInfo=False, isPID=False)
-    cmd1 = "socat  -d -d -d -u -T 20 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"
+    remoteRPI1('cd ~/boneCV; ./streamVideoUDP',isInfo=False, isPID=False)
+    remoteRPI2('cd ~/boneCV; ./streamVideoUDP',isInfo=False, isPID=False)
+    remoteRPI3('cd ~/boneCV; ./streamVideoUDP',isInfo=False, isPID=False)
+    cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"
     
     process1 = Popen(cmd1, shell=True)
     process1.wait()
