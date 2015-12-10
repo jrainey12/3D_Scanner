@@ -16,10 +16,10 @@ echo "Piping the output of capture to avconv"
 
 #For use with raspberry pi camera module
 #Laptop shared connection
-#raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
 
 #Swtch connection
-raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://192.168.1.238:1234
+#raspivid -t 20000 -o -|ffmpeg -re -i - -vcodec copy -f mpegts udp://192.168.1.238:1234
 
 
 #Failed attempts

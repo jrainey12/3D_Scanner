@@ -16,10 +16,10 @@
 #For use with raspberry pi camera module
 
 #Laptop connection sharing
-#raspivid -o - -t 0 -rot 180 |ffmpeg -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
+raspivid -o - -t 0 -rot 180 |ffmpeg -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
 
 #Switch connection
-raspivid -o - -t 0 -rot 180 |ffmpeg -re -i - -vcodec copy -f mpegts udp://192.168.1.238:1234
+#raspivid -o - -t 0 -rot 180 |ffmpeg -re -i - -vcodec copy -f mpegts udp://192.168.1.238:1234
 
 
 #raspivid -o - -t 0 |avconv -re -i - -vcodec copy -f mpegts udp://10.42.0.1:1234
