@@ -9,14 +9,8 @@ import time
 
 
 connections = [] #remote ssh connections
-raspberryPIs = ['rPI1', 'rPI2', 'rPI3']#, 'rPI4', 'rPI5','rPI6'] #Raspberry PIs
 #list details of the connections
-
-#hosts = ['10.42.0.88,pi,raspberry','10.42.0.72,pi,raspberry','10.42.0.89,pi,raspberry']
-#hosts = ['10.42.0.75,pi,raspberry','10.42.0.14,pi,raspberry','10.42.0.12,pi,raspberry']
-#hosts = ['10.42.0.77,pi,raspberry','10.42.0.99,pi,raspberry','10.42.0.64,pi,raspberry']
-hosts = ['10.42.0.36,pi,raspberry','10.42.0.76,pi,raspberry','10.42.0.52,pi,raspberry',
-		'10.42.0.75,pi,raspberry','10.42.0.14,pi,raspberry','10.42.0.12,pi,raspberry']
+hosts = ['10.42.0.76,pi,raspberry']
 
 #close all the SSH connections, and processes
 
@@ -91,7 +85,7 @@ def stop():
 
 def vlcView():
     """run the capture.c file in remote system with """
-    #remoteRPI('cd ~/Documents/boneCV; ./streamVideoUDP_infinite',isInfo=False, isPID=False)
+    remoteRPI('cd ~/threeDScanner; ./streamVideoUDP_infinite',isInfo=False, isPID=False)
     p = vlc.MediaPlayer('udp://@:1234')
     p.play()
     #call(['cvlc', 'udp://@:1234', '--play-and-exit']) #this one blocks the interface
@@ -99,52 +93,24 @@ def vlcView():
 
 def stopRemotePro():
 	"""stop the capture program in raspberry pi"""
-	
-	for x in range(0,len(raspberryPIs)):
-	
-	
-           capturePID = raspberryPIs[x]('pidof capture',isInfo=False, isPID=True)
+        capturePID = remoteRPI('pidof raspivid',isInfo=False, isPID=True)
         if capturePID: #kill the remote process when the pid returned is not zero
 		    killcommand = 'kill -9 {pid}'.format(pid=capturePID)
-		    raspberryPIs[x](killcommand,isInfo=True, isPID=False)
+		    remoteRPI(killcommand,isInfo=True, isPID=False)
 		    
-	#capturePID2 = remoteRPI2('pidof capture',isInfo=False, isPID=True)
-     #   if capturePID2: #kill the remote process when the pid returned is not zero
-		#    killcommand = 'kill -9 {pid}'.format(pid=capturePID2)
-		 #   remoteRPI2(killcommand,isInfo=True, isPID=False)
 		    
-	#capturePID3 = remoteRPI3('pidof capture',isInfo=False, isPID=True)
-     #   if capturePID3: #kill the remote process when the pid returned is not zero
-		#    killcommand = 'kill -9 {pid}'.format(pid=capturePID3)
-		 #   remoteRPI3(killcommand,isInfo=True, isPID=False)
-		    
-
 def captureImage():
 	
 	"""capture image"""
-	for x in range(0,len(raspberryPIs)):		      
-            raspberryPIs[x]('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-            ImageName = ''.join(['/home/james/Pictures/collection/Image-',time.strftime("%y%m%d-%H%M%S")])   
-        #remoteRPI1('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-        #remoteRPI2('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-        #remoteRPI3('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-        
-        cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + ImageName + ",creat,append"    
-        process2 = Popen(cmd1, shell=True)
-        process2.wait()   
-
-def shutdownPIs():
-	
-	"""shutdown Raspberry Pis"""
-        for x in range(0,raspberryPIs)):		      
-            raspberryPIs[x]('sudo shutdown now',isInfo=False, isPID=False)
-#        remoteRPI1('sudo shutdown now',isInfo=False, isPID=False)
-#        remoteRPI2('sudo shutdown now',isInfo=False, isPID=False)
-#        remoteRPI3('sudo shutdown now',isInfo=False, isPID=False)
-        
-       
+        ImageName = ''.join(['/home/james/Pictures/collection/Image-',time.strftime("%y%m%d-%H%M%S")])   
+        remoteRPI('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
+        cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + ImageName + ",creat,append"
     
-       
+        process1 = Popen(cmd1, shell=True)
+        process1.wait()
+       		    
+
+
 
 class Window(QtGui.QWidget):
     def __init__(self):
@@ -184,32 +150,16 @@ class Window(QtGui.QWidget):
         self.button4 = QtGui.QPushButton('Disconnect', self)
         self.button4.clicked.connect(stop)
         self.button4.resize(125,30)        
-        self.button4.move(50, 300)
+        self.button4.move(137.5, 300)
        # layout.addWidget(self.button4)
         
-        #Button to shutdown raspberry PIs
-        self.button6 = QtGui.QPushButton('Shutdown PIs', self)
-        self.button6.clicked.connect(shutdownPIs)
-        self.button6.resize(125, 30)        
-        self.button6.move(225, 300)
-        #layout.addWidget(self.button6)
         
        
         
-for x in range(0,len(raspberryPIs)):
-	raspberryPIs[x] = connecthosts(hosts[x], 'Raspberry Pi' + str((x + 1))) 
-	raspberryPIs[x]('uptime', isInfo=True, isPID=False)
-	
-	 
-#connection with raspberry pis
-#remoteRPI1 = connecthosts(hosts[0], 'Raspberry Pi 1')
-#remoteRPI1('uptime', isInfo=True, isPID=False)
-
-#remoteRPI2 = connecthosts(hosts[1], 'Raspberry Pi 2')
-#remoteRPI2('uptime', isInfo=True, isPID=False)
-
-#remoteRPI3 = connecthosts(hosts[2], 'Raspberry Pi 3')
-#remoteRPI3('uptime', isInfo=True, isPID=False)
+    
+#connection with raspberry pi
+remoteRPI = connecthosts(hosts[0], 'Raspberry Pi')
+remoteRPI('uptime', isInfo=True, isPID=False)
 
 
 
@@ -220,15 +170,13 @@ def main():
 
 
     """start the StreamVideoUDP program in Raspberry Pi and record the live video to the 'collection' folder"""
-    for x in range(0,len(raspberryPIs)):		      
-        raspberryPIs[x]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
-        videoName = ''.join(['/home/james/Videos/collection/StreamVideo-',time.strftime("%y%m%d-%H%M%S")])
+  
+    videoName = ''.join(['/home/james/Videos/collection/StreamVideo-',time.strftime("%y%m%d-%H%M%S")])   
+    remoteRPI('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
+    cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"
     
-    cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"    
     process1 = Popen(cmd1, shell=True)
     process1.wait()
-    #remoteRPI2('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
-    #remoteRPI3('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
     
 
     
@@ -237,7 +185,7 @@ if __name__ == '__main__':
     """Set up main window and start UI"""
     app = QtGui.QApplication(sys.argv)
     window = Window()
-    window.setGeometry(300, 300, 400, 400)
+    window.setGeometry(400, 400, 400, 400)
     window.setWindowTitle('Command And Control')
     window.show()
     sys.exit(app.exec_())

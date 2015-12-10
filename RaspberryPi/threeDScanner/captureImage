@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#For use with raspberry pi camera module
+#Laptop shared connection
+#raspistill -o -|
+
+#Swtch connection
+#raspistill -rot 180 -o - |socat stdin udp4-sendto:192.168.1.172:1234
+
+#connection sharing
+raspistill -rot 180 -o - |socat stdin udp4-sendto:10.42.0.1:1234
+
