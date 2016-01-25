@@ -6,6 +6,8 @@ import socket
 import vlc
 from subprocess import *
 import time
+import threading
+from multiprocessing import Process
 
 
 connections = [] #remote ssh connections
@@ -13,11 +15,11 @@ raspberryPIs = ['rPI1', 'rPI2']#, 'rPI3']#, 'rPI4', 'rPI5','rPI6'] #Raspberry PI
 #list details of the connections
 
 #hosts = ['10.42.0.88,pi,raspberry','10.42.0.72,pi,raspberry','10.42.0.89,pi,raspberry']
-#hosts = ['10.42.0.75,pi,raspberry','10.42.0.14,pi,raspberry','10.42.0.12,pi,raspberry']
+#hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238']
 #hosts = ['10.42.0.77,pi,raspberry','10.42.0.99,pi,raspberry','10.42.0.64,pi,raspberry']
 #hosts = ['10.42.0.36,pi,raspberry','10.42.0.76,pi,raspberry','10.42.0.52,pi,raspberry',
 		#'10.42.0.75,pi,raspberry','10.42.0.14,pi,raspberry','10.42.0.12,pi,raspberry']
-hosts = ['192.168.1.68,pi,raspberry', '192.168.1.229,pi,raspberry']
+hosts = ['192.168.1.68,pi,raspberry,1234', '192.168.1.229,pi,raspberry,1236']
 
 #close all the SSH connections, and processes
 
@@ -109,43 +111,58 @@ def stopRemotePro():
 		    killcommand = 'kill -9 {pid}'.format(pid=capturePID)
 		    raspberryPIs[x](killcommand,isInfo=True, isPID=False)
 		    
-	#capturePID2 = remoteRPI2('pidof capture',isInfo=False, isPID=True)
-     #   if capturePID2: #kill the remote process when the pid returned is not zero
-		#    killcommand = 'kill -9 {pid}'.format(pid=capturePID2)
-		 #   remoteRPI2(killcommand,isInfo=True, isPID=False)
-		    
-	#capturePID3 = remoteRPI3('pidof capture',isInfo=False, isPID=True)
-     #   if capturePID3: #kill the remote process when the pid returned is not zero
-		#    killcommand = 'kill -9 {pid}'.format(pid=capturePID3)
-		 #   remoteRPI3(killcommand,isInfo=True, isPID=False)
-		    
+			    
 
 def captureImage():
 	
-	"""capture image"""
-	for x in range(0,len(raspberryPIs)):		      
-            raspberryPIs[x]('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-            ImageName = ''.join(['/home/james/Pictures/collection/Image-',time.strftime("%y%m%d-%H%M%S")])   
-        #remoteRPI1('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-        #remoteRPI2('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-        #remoteRPI3('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
-        
-        cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + ImageName + ",creat,append"    
-        process2 = Popen(cmd1, shell=True)
-        process2.wait()   
+	imgThreads = []
+	
+	for x in range(0,len(raspberryPIs)):
+		items=hosts[x].split(',')		
+		port = items[3]
+		imageName = ''.join(['/home/james/Pictures/collection/Image' + str(x) + '-',time.strftime("%y%m%d-%H%M%S")])
+		img = threading.Thread(target=startImageCapture(port,imageName,x))
+		imgThreads.append(img)
+		
+		
+	for t in imgThreads:
+			t.start()
+			
+	for t in imgThreads:
+		    t.join()
+	
+
+#"""capture image"""
+#	for x in range(0,len(raspberryPIs)):		      
+ #           raspberryPIs[x]('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
+  #          ImageName = ''.join(['/home/james/Pictures/collection/Image-',time.strftime("%y%m%d-%H%M%S")])   
+   #    
+    #    
+     #   cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + ImageName + ",creat,append"    
+      #  process2 = Popen(cmd1, shell=True)
+       # process2.wait()   
 
 def shutdownPIs():
 	
 	"""shutdown Raspberry Pis"""
         for x in range(0,len(raspberryPIs)):		      
             raspberryPIs[x]('sudo shutdown now',isInfo=False, isPID=False)
-#        remoteRPI1('sudo shutdown now',isInfo=False, isPID=False)
-#        remoteRPI2('sudo shutdown now',isInfo=False, isPID=False)
-#        remoteRPI3('sudo shutdown now',isInfo=False, isPID=False)
+            
+  
         
-       
+def startImageCapture(port,imageName,position):
+	
+	raspberryPIs[position]('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)       
+	cmd2 = "socat  -d -d -d -u -T 10 UDP4-RECV:" + str(port) + ",reuseaddr OPEN:" + imageName + ",creat,append"    
+	process2 = Popen(cmd2, shell=True)
+ 
     
-       
+def startStream(port,videoName,position):
+	
+    raspberryPIs[position]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
+    cmd = "socat  -d -d -d -u -T 10 UDP4-RECV:" + str(port) + ",reuseaddr OPEN:" + videoName + ",creat,append"    
+    process = Popen(cmd, shell=True)
+    #process.wait()      
 
 class Window(QtGui.QWidget):
     def __init__(self):
@@ -202,18 +219,6 @@ for x in range(0,len(raspberryPIs)):
 	raspberryPIs[x]('uptime', isInfo=True, isPID=False)
 	
 	 
-#connection with raspberry pis
-#remoteRPI1 = connecthosts(hosts[0], 'Raspberry Pi 1')
-#remoteRPI1('uptime', isInfo=True, isPID=False)
-
-#remoteRPI2 = connecthosts(hosts[1], 'Raspberry Pi 2')
-#remoteRPI2('uptime', isInfo=True, isPID=False)
-
-#remoteRPI3 = connecthosts(hosts[2], 'Raspberry Pi 3')
-#remoteRPI3('uptime', isInfo=True, isPID=False)
-
-
-
 
 def main():
 
@@ -221,16 +226,27 @@ def main():
 
 
     """start the StreamVideoUDP program in Raspberry Pi and record the live video to the 'collection' folder"""
-    for x in range(0,len(raspberryPIs)):		      
-        raspberryPIs[x]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
-        videoName = ''.join(['/home/james/Videos/collection/StreamVideo-',time.strftime("%y%m%d-%H%M%S")])
+    #for x in range(0,len(raspberryPIs)):
+		#raspberryPIs[x]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)		      
+      
+    threads = []
     
-    cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + videoName + ",creat,append"    
-    process1 = Popen(cmd1, shell=True)
-    #process1.wait()
-    #remoteRPI2('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
-    #remoteRPI3('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
-    
+    for y in range(0,len(raspberryPIs)):
+		items=hosts[y].split(',')		
+		port = items[3]
+		videoName = ''.join(['/home/james/Videos/collection/StreamVideo' + str(y) + '-',time.strftime("%y%m%d-%H%M%S")])
+		t = threading.Thread(target=startStream(port,videoName,y))
+		threads.append(t)
+		
+		
+    for t in threads:
+			t.start()
+			
+    for t in threads:
+		    t.join()
+		
+   
+	  
 
     
 if __name__ == '__main__':
