@@ -1,5 +1,7 @@
 import sys
-from PyQt4 import QtGui
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
+
 
 import paramiko
 import socket
@@ -11,15 +13,16 @@ from multiprocessing import Process
 
 
 connections = [] #remote ssh connections
-raspberryPIs = ['rPI1', 'rPI2']#, 'rPI3']#, 'rPI4', 'rPI5','rPI6'] #Raspberry PIs
+raspberryPIs = ['rPI1','rPI2','rPI3','rPI4','rPI5','rPI6','rPI7','rPI8','rPI7'] #Raspberry PIs
 #list details of the connections
 
 #hosts = ['10.42.0.88,pi,raspberry','10.42.0.72,pi,raspberry','10.42.0.89,pi,raspberry']
 #hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238']
 #hosts = ['10.42.0.77,pi,raspberry','10.42.0.99,pi,raspberry','10.42.0.64,pi,raspberry']
-#hosts = ['10.42.0.36,pi,raspberry','10.42.0.76,pi,raspberry','10.42.0.52,pi,raspberry',
-		#'10.42.0.75,pi,raspberry','10.42.0.14,pi,raspberry','10.42.0.12,pi,raspberry']
-hosts = ['192.168.1.68,pi,raspberry,1234', '192.168.1.229,pi,raspberry,1236']
+hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238',
+		'10.42.0.36,pi,raspberry,1240','10.42.0.76,pi,raspberry,1242','10.42.0.52,pi,raspberry,1244',
+		'10.42.0.74,pi,raspberry,1246', '10.42.0.96,pi,raspberry,1248', '10.42.0.53,pi,raspberry,1250']
+#hosts = ['192.168.1.68,pi,raspberry,1234', '192.168.1.229,pi,raspberry,1236']
 
 #close all the SSH connections, and processes
 
@@ -92,10 +95,16 @@ def stop():
 
 
 
-def vlcView():
+def vlcView(item):
     """run the capture.c file in remote system with """
     #remoteRPI('cd ~/Documents/boneCV; ./streamVideoUDP_infinite',isInfo=False, isPID=False)
-    p = vlc.MediaPlayer('udp://@:1234')
+    
+    items = item.split(',',2)
+    port = items[2]
+    position = int(items[0])
+    raspberryPIs[position]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
+    print port
+    p = vlc.MediaPlayer('udp://@:'+ port)
     p.play()
     #call(['cvlc', 'udp://@:1234', '--play-and-exit']) #this one blocks the interface
 
@@ -153,64 +162,123 @@ def shutdownPIs():
 def startImageCapture(port,imageName,position):
 	
 	raspberryPIs[position]('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)       
-	cmd2 = "socat  -d -d -d -u -T 10 UDP4-RECV:" + str(port) + ",reuseaddr OPEN:" + imageName + ",creat,append"    
+	cmd2 = "socat -u -T 10 UDP4-RECV:" + str(port) + ",reuseaddr OPEN:" + imageName + ",creat,append"    
 	process2 = Popen(cmd2, shell=True)
  
     
 def startStream(port,videoName,position):
 	
     raspberryPIs[position]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
-    cmd = "socat  -d -d -d -u -T 10 UDP4-RECV:" + str(port) + ",reuseaddr OPEN:" + videoName + ",creat,append"    
+    cmd = "socat -u -T 10 UDP4-RECV:" + str(port) + ",reuseaddr OPEN:" + videoName + ",creat,append"    
     process = Popen(cmd, shell=True)
     #process.wait()      
 
-class Window(QtGui.QWidget):
+class Window(QWidget):
     def __init__(self):
         
-        QtGui.QWidget.__init__(self)        
-        layout = QtGui.QVBoxLayout(self)
+        QWidget.__init__(self)        
+        layout = QGridLayout()
+        layout.setHorizontalSpacing(10)
+        layout.setVerticalSpacing(10)
+
+        #Vlc stream label
+        self.vlcLbl = QLabel('VLC Viewing')
+        self.vlcLbl.setAlignment(Qt.AlignHCenter)        
+        layout.addWidget(self.vlcLbl, 0,1,1,2)
         
-        #Button to Start infinite UDP stream to VLC
-        self.button1 = QtGui.QPushButton('VLC Viewing', self)
-        self.button1.clicked.connect(vlcView)       
+        
+       
+        
+        
+        self.comboLbl = QLabel('Camera :')
+        self.comboLbl.setAlignment(Qt.AlignHCenter)
+        layout.addWidget(self.comboLbl,1,1)
+        
+        #combo box to select camera for vlc view
+        self.cameraCombo = QComboBox()    
+         
+        for y in range(0,len(raspberryPIs)):
+			items=hosts[y].split(',')		
+			port =  str(y) + ',' + items[0] + ',' + items[3] 
+			self.cameraCombo.addItem(port)	
+			
+        self.cameraCombo.setMaxVisibleItems(5)   		
+        layout.addWidget(self.cameraCombo,1,2)
+        
+       # selectedText = str(self.cameraCombo.currentText())
+       
+         #Button to Start infinite UDP stream to VLC
+        self.button1 = QPushButton('Start', self)
+        self.button1.clicked.connect(lambda: vlcView(str(self.cameraCombo.currentText())))      
         self.button1.resize(125, 30)       
-        self.button1.move(50, 100)
-        #layout.addWidget(self.button1)
+        layout.addWidget(self.button1,2,1)
+        
+       
+        
         
         #Button to stop UDP stream
-        self.button2 = QtGui.QPushButton('Stop VLC Stream', self)
+        self.button2 = QPushButton('Stop', self)
         self.button2.clicked.connect(stopRemotePro)
         self.button2.resize(125, 30)      
-        self.button2.move(225, 100)
-        #layout.addWidget(self.button2)
+        layout.addWidget(self.button2, 2,2)
+        
+        layout.setRowMinimumHeight(3, 25)
+        
+        
+        self.dividingLine1 = QFrame()
+        self.dividingLine1.setFrameStyle(QFrame.HLine)
+        #self.dividingLine1.setSizePolicy(QSizePolicy.Minimum,QSizePolicy.Expanding)
+        layout.addWidget(self.dividingLine1,4,1,1,2)
+        
+       # layout.setRowMinimumHeight(5, 25)
+        
+        #record label
+        self.recordLbl = QLabel('Recording')
+        self.recordLbl.setAlignment(Qt.AlignHCenter)        
+        layout.addWidget(self.recordLbl, 6,1,1,2)
         
         #Button to record video on raspberry pi
-        self.button3 = QtGui.QPushButton('Record Video', self)
+        self.button3 = QPushButton('Record Video', self)
         self.button3.clicked.connect(main)
         self.button3.resize(125,30)       
-        self.button3.move(50, 200)
-       # layout.addWidget(self.button3)
+        layout.addWidget(self.button3, 7,1)
         
         #Button to capture image
-        self.button5 = QtGui.QPushButton('Capture Image', self)
+        self.button5 = QPushButton('Capture Image', self)
         self.button5.clicked.connect(captureImage)
         self.button5.resize(125,30)        
-        self.button5.move(225, 200)
-        #layout.addWidget(self.button5)
+        layout.addWidget(self.button5,7,2)
+        
+        layout.setRowMinimumHeight(8, 25)
+        
+        self.dividingLine2 = QFrame()
+        self.dividingLine2.setFrameStyle(QFrame.HLine)
+        #self.dividingLine2.setSizePolicy(QSizePolicy.Minimum,QSizePolicy.Expanding)
+        layout.addWidget(self.dividingLine2,9,1,1,2)
+        
+        
+      #  layout.setRowMinimumHeight(10, 25)
+        
+        #record label
+        self.recordLbl = QLabel('Raspberry Pi Management')
+        self.recordLbl.setAlignment(Qt.AlignHCenter)        
+        layout.addWidget(self.recordLbl, 11,1,1,2)
         
         #Button to close SSH connections to pi
-        self.button4 = QtGui.QPushButton('Disconnect', self)
+        self.button4 = QPushButton('Disconnect', self)
         self.button4.clicked.connect(stop)
         self.button4.resize(125,30)        
-        self.button4.move(50, 300)
-       # layout.addWidget(self.button4)
+        layout.addWidget(self.button4,12,1)
         
         #Button to shutdown raspberry PIs
-        self.button6 = QtGui.QPushButton('Shutdown PIs', self)
+        self.button6 = QPushButton('Shutdown PIs', self)
         self.button6.clicked.connect(shutdownPIs)
         self.button6.resize(125, 30)        
-        self.button6.move(225, 300)
-        #layout.addWidget(self.button6)
+        layout.addWidget(self.button6,12,2)
+        
+        layout.setRowMinimumHeight(13, 10)
+        
+        self.setLayout(layout)
         
        
         
@@ -252,9 +320,9 @@ def main():
 if __name__ == '__main__':
 
     """Set up main window and start UI"""
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     window = Window()
-    window.setGeometry(300, 300, 400, 400)
+    window.setFixedSize(400,400)
     window.setWindowTitle('Command And Control')
     window.show()
     sys.exit(app.exec_())
