@@ -12,18 +12,18 @@ import threading
 
 
 connections = [] #remote ssh connections
-raspberryPIs = ['rPI1','rPI2','rPI3','rPI4','rPI5','rPI6','rPI7','rPI8','rPI9','rPI10','rPI11','rPI12'] #Raspberry PIs
+raspberryPIs = ['rPI1','rPI2','rPI3']#,'rPI4','rPI5','rPI6','rPI7','rPI8','rPI9','rPI10','rPI11','rPI12'] #Raspberry PIs
 #list details of the connections
 
 #hosts = ['10.42.0.88,pi,raspberry','10.42.0.72,pi,raspberry','10.42.0.89,pi,raspberry']
 #hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238']
 #hosts = ['10.42.0.77,pi,raspberry','10.42.0.99,pi,raspberry','10.42.0.64,pi,raspberry']
-hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238',
-		'10.42.0.36,pi,raspberry,1240','10.42.0.76,pi,raspberry,1242','10.42.0.52,pi,raspberry,1244',
-		'10.42.0.74,pi,raspberry,1246', '10.42.0.96,pi,raspberry,1248', '10.42.0.53,pi,raspberry,1250',
-		'10.42.0.77,pi,raspberry,1252', '10.42.0.65,pi,raspberry,1254', '10.42.0.28,pi,raspberry,1256']
+#hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238',
+#		'10.42.0.36,pi,raspberry,1240','10.42.0.76,pi,raspberry,1242','10.42.0.52,pi,raspberry,1244',
+#		'10.42.0.74,pi,raspberry,1246', '10.42.0.96,pi,raspberry,1248', '10.42.0.53,pi,raspberry,1250',
+#		'10.42.0.77,pi,raspberry,1252', '10.42.0.65,pi,raspberry,1254', '10.42.0.28,pi,raspberry,1256']
 #hosts = ['192.168.1.68,pi,raspberry,1234', '192.168.1.229,pi,raspberry,1236']
-
+hosts = ['10.42.0.19,pi,raspberry,2019', '10.42.0.20,pi,raspberry,2020', '10.42.0.21,pi,raspberry,2021']
 #close all the SSH connections, and processes
 
 
