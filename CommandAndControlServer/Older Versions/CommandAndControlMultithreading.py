@@ -12,8 +12,17 @@ import threading
 
 
 connections = [] #remote ssh connections
-raspberryPIs = []
-rasPiCount = 6
+raspberryPIs = ['rPI1','rPI2','rPI3','rPI4','rPI5','rPI6','rPI7','rPI8','rPI9','rPI10','rPI11','rPI12'] #Raspberry PIs
+#list details of the connections
+
+#hosts = ['10.42.0.88,pi,raspberry','10.42.0.72,pi,raspberry','10.42.0.89,pi,raspberry']
+#hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238']
+#hosts = ['10.42.0.77,pi,raspberry','10.42.0.99,pi,raspberry','10.42.0.64,pi,raspberry']
+hosts = ['10.42.0.75,pi,raspberry,1234','10.42.0.14,pi,raspberry,1236','10.42.0.12,pi,raspberry,1238',
+		'10.42.0.36,pi,raspberry,1240','10.42.0.76,pi,raspberry,1242','10.42.0.52,pi,raspberry,1244',
+		'10.42.0.74,pi,raspberry,1246', '10.42.0.96,pi,raspberry,1248', '10.42.0.53,pi,raspberry,1250',
+		'10.42.0.77,pi,raspberry,1252', '10.42.0.65,pi,raspberry,1254', '10.42.0.28,pi,raspberry,1256']
+#hosts = ['192.168.1.68,pi,raspberry,1234', '192.168.1.229,pi,raspberry,1236']
 
 #close all the SSH connections, and processes
 
@@ -32,8 +41,7 @@ class connecthosts:
 		"""
 		#Paramiko would not work without log file
         paramiko.util.log_to_file("paramiko.log")
-        #items=hostInfo.split(',')
-        items=hostInfo
+        items=hostInfo.split(',')
         print "Connecting to %s..." % deviceName
         try:
 		
@@ -115,13 +123,11 @@ def stopRemotePro():
 
 def captureImage():
 	
-	stopRemotePro()
-	 
 	imgThreads = []
 	
 	for x in range(0,len(raspberryPIs)):
-		port = '20'+ (str(x + 10))
-		
+		items=hosts[x].split(',')		
+		port = items[3]
 		imageName = ''.join(['/home/james/Pictures/collection/Image' + str(x) + '-',time.strftime("%y%m%d-%H%M%S")])
 		img = threading.Thread(target=startImageCapture(port,imageName,x))
 		imgThreads.append(img)
@@ -136,10 +142,20 @@ def captureImage():
 	print 'Images saved to Home/Pictures/collection'
 	
 
+#"""capture image"""
+#	for x in range(0,len(raspberryPIs)):		      
+ #           raspberryPIs[x]('cd ~/threeDScanner; ./captureImage',isInfo=False, isPID=False)
+  #          ImageName = ''.join(['/home/james/Pictures/collection/Image-',time.strftime("%y%m%d-%H%M%S")])   
+   #    
+    #    
+     #   cmd1 = "socat  -d -d -d -u -T 10 UDP4-RECV:1234,reuseaddr OPEN:" + ImageName + ",creat,append"    
+      #  process2 = Popen(cmd1, shell=True)
+       # process2.wait()   
+
 def shutdownPIs():
 	
 	"""shutdown Raspberry Pis"""
-        for x in range(0,len(raspberryPIs):		      
+        for x in range(0,len(raspberryPIs)):		      
             raspberryPIs[x]('sudo shutdown now',isInfo=False, isPID=False)
             
   
@@ -154,9 +170,9 @@ def startImageCapture(port,imageName,position):
 def startStream(port,videoName,position):
 	"""Start Video Capture"""
 	raspberryPIs[position]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)
-	cmd = "socat -u -T 10 UDP4-RECV:" + port + ",reuseaddr OPEN:" + videoName + ",creat,append"    
+	cmd = "socat -u -T 10 UDP4-RECV:" + str(port) + ",reuseaddr OPEN:" + videoName + ",creat,append"    
 	process = Popen(cmd, shell=True)
-
+	#process.wait()      
 
 class Window(QWidget):
     def __init__(self):
@@ -180,8 +196,8 @@ class Window(QWidget):
         self.cameraCombo = QComboBox()    
          
         for y in range(0,len(raspberryPIs)):
-			#port = str(y) + ', ' + '10.42.0.' + str(y + 10) + ', ' + '20' + str(y+10)
-			port = 'Camera' + str(y +1) + ' ip: 10.42.0.' + str(y+10)
+			items=hosts[y].split(',')		
+			port =  str(y) + ',' + items[0] + ',' + items[3] 
 			self.cameraCombo.addItem(port)	
 			
         self.cameraCombo.setMaxVisibleItems(5)   		
@@ -193,7 +209,9 @@ class Window(QWidget):
         self.button1 = QPushButton('Start', self)
         self.button1.clicked.connect(lambda: vlcView(str(self.cameraCombo.currentText())))      
         self.button1.resize(125, 30)       
-        layout.addWidget(self.button1,2,1)      
+        layout.addWidget(self.button1,2,1)
+        
+       
         
         
         #Button to stop UDP stream
@@ -260,13 +278,8 @@ class Window(QWidget):
         
        
         
-for x in range(1,rasPiCount):
-	
-	raspberryPIs.append('Pi' + str(x))
-	ip = '10.42.0.' + str(x + 10)
-	#print ip
-	
-	raspberryPIs[x] = connecthosts([ip,'pi','raspberry'], 'Raspberry Pi' + str((x + 1))) 
+for x in range(0,len(raspberryPIs)):
+	raspberryPIs[x] = connecthosts(hosts[x], 'Raspberry Pi' + str((x + 1))) 
 	raspberryPIs[x]('uptime', isInfo=True, isPID=False)
 	
 	 
@@ -283,10 +296,8 @@ def main():
     threads = []
     
     for y in range(0,len(raspberryPIs)):
-		#items=hosts[y].split(',')		
-		#port = items[3]
-		port = '20'+ (str(y + 10))
-		#print port
+		items=hosts[y].split(',')		
+		port = items[3]
 		videoName = ''.join(['/home/james/Videos/collection/StreamVideo' + str(y) + '-',time.strftime("%y%m%d-%H%M%S")])
 		t = threading.Thread(target=startStream(port,videoName,y))
 		threads.append(t)
