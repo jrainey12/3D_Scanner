@@ -142,7 +142,7 @@ def captureImage():
 def shutdownPIs():
 	
 	"""shutdown Raspberry Pis"""
-        for x in range(0,len(raspberryPIs):		      
+        for x in range(0,len(raspberryPIs)):		      
             raspberryPIs[x]('sudo shutdown now',isInfo=False, isPID=False)
             
   
