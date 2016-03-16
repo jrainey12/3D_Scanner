@@ -166,6 +166,14 @@ def startStream(port,videoName,position):
 	process = Popen(cmd, shell=True)
 	#process.wait()      
 
+
+def imageBreakdown(folderName):	
+	
+	for x in range(0,len(raspberryPIs)):
+		cmd1 = "cd /media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection/" + folderName + "; mkdir imageBreakdown" + str(x) + "; ffmpeg -i StreamVideo" + str(x) + " -r 1 imageBreakdown" + str(x) + "/image%03d.png"
+		process1 = Popen(cmd1, shell=True)
+	
+	
 class Window(QWidget):
     def __init__(self):
         
@@ -310,6 +318,9 @@ def main():
 		    t.join()
 		    
     print 'Recordings saved to /media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection'
+    
+    time.sleep(25)
+    imageBreakdown(folderName)
 		
    
 	  
