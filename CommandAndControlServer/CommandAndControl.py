@@ -313,7 +313,7 @@ def main():
 		    
     print '/media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection/'
     
-     time.sleep(25)
+    time.sleep(25)
     imageBreakdown(folderName)
 		
    
