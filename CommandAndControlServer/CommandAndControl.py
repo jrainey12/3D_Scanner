@@ -113,6 +113,9 @@ def stopRemotePro():
 		    
 			    
 
+
+	
+
 def captureImage():
 	
 	stopRemotePro()
@@ -279,7 +282,11 @@ def main():
     """start the StreamVideoUDP program in Raspberry Pi and record the live video to the 'collection' folder"""
     #for x in range(0,len(raspberryPIs)):
 		#raspberryPIs[x]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)		      
-      
+    
+    folderName = time.strftime("%d%m%y-%H%M%S")    
+    cmd = "cd /media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection; mkdir " + folderName    
+    process = Popen(cmd, shell=True)
+    
     threads = []
     
     for y in range(0,len(raspberryPIs)):
@@ -287,7 +294,8 @@ def main():
 		#port = items[3]
 		port = '20'+ (str(y + 10))
 		#print port
-		videoName = ''.join(['/home/james/Videos/collection/StreamVideo' + str(y) + '-',time.strftime("%y%m%d-%H%M%S")])
+		#videoName = ''.join(['/home/james/Videos/collection/StreamVideo' + str(y) + '-',time.strftime("%y%m%d-%H%M%S")])
+		videoName = '/media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection/' + folderName +'/StreamVideo' + str(y)
 		t = threading.Thread(target=startStream(port,videoName,y))
 		threads.append(t)
 		

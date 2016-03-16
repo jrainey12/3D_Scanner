@@ -15,7 +15,7 @@ connections = [] #remote ssh connections
 raspberryPIs = ['rPI1','rPI2','rPI3']#,'rPI4','rPI5','rPI6','rPI7','rPI8','rPI9','rPI10','rPI11','rPI12'] #Raspberry PIs
 #list details of the connections
 
-hosts = ['10.42.0.55,pi,raspberry,2055', '10.42.0.56,pi,raspberry,2056', '10.42.0.57,pi,raspberry,2057']
+hosts = ['10.42.0.43,pi,raspberry,2043', '10.42.0.44,pi,raspberry,2044', '10.42.0.45,pi,raspberry,2045']
 #close all the SSH connections, and processes
 
 
@@ -25,7 +25,7 @@ class connecthosts:
         """
 		Args:
             hostInfo: IP username password
-            deviceName: beaglebone/raspberryPi			
+            deviceName: raspberryPi			
         return:
             none
         usage:
@@ -120,7 +120,7 @@ def captureImage():
 	for x in range(0,len(raspberryPIs)):
 		items=hosts[x].split(',')		
 		port = items[3]
-		imageName = ''.join(['/home/james/Pictures/collection/Image' + str(x) + '-',time.strftime("%y%m%d-%H%M%S")])
+		imageName = ''.join(['/media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Pictures/collection/Image' + str(x) + '-',time.strftime("%y%m%d-%H%M%S")])
 		img = threading.Thread(target=startImageCapture(port,imageName,x))
 		imgThreads.append(img)
 		
@@ -131,7 +131,7 @@ def captureImage():
 	for t in imgThreads:
 		    t.join()
 	
-	print 'Images saved to Home/Pictures/collection'
+	print 'Images saved to /media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Pictures/collection'
 	
 
 #"""capture image"""
@@ -284,13 +284,21 @@ def main():
     """start the StreamVideoUDP program in Raspberry Pi and record the live video to the 'collection' folder"""
     #for x in range(0,len(raspberryPIs)):
 		#raspberryPIs[x]('cd ~/threeDScanner; ./streamVideoUDP',isInfo=False, isPID=False)		      
+    
+    folderName = time.strftime("%d%m%y-%H%M%S")
+    
+    cmd = "cd /media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection; mkdir " + folderName
+    
+    process = Popen(cmd, shell=True)
+    
       
     threads = []
     
     for y in range(0,len(raspberryPIs)):
 		items=hosts[y].split(',')		
 		port = items[3]
-		videoName = ''.join(['/home/james/Videos/collection/StreamVideo' + str(y) + '-',time.strftime("%y%m%d-%H%M%S")])
+		#videoName = ''.join(['/media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection/StreamVideo' + str(y) + '-',time.strftime("%y%m%d-%H%M%S")])
+		videoName = '/media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection/' + folderName +'/StreamVideo' + str(y)
 		t = threading.Thread(target=startStream(port,videoName,y))
 		threads.append(t)
 		
@@ -301,7 +309,7 @@ def main():
     for t in threads:
 		    t.join()
 		    
-    print 'Recordings saved to Home/Videos/collection'
+    print 'Recordings saved to /media/james/55a95f9c-c46d-48e5-9e4f-85754d2780b3/james/Videos/collection'
 		
    
 	  
