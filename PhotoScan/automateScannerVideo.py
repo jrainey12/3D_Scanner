@@ -47,8 +47,10 @@ for p in image_paths:
 		
 	chunk.addPhotos([effectiveimage_list[0]])
 	
+	
 	num = image_paths.index(p)	
 	
+		
 	for x in range(1, len(effectiveimage_list)):
 		
 		chunk.cameras[num].frames[x].open(effectiveimage_list[x])
@@ -59,11 +61,11 @@ for p in image_paths:
 		
 
 #Match and Align Photos
-chunk.matchPhotos(accuracy = MediumAccuracy, preselection = NoPreselection, filter_mask=False, keypoint_limit=50000, tiepoint_limit=4000) 
+chunk.matchPhotos(accuracy = HighestAccuracy, preselection = NoPreselection, filter_mask=False, keypoint_limit=50000, tiepoint_limit=4000) 
 chunk.alignCameras()             
 
 #build dense cloud
-chunk.buildDenseCloud(quality=MediumQuality)
+chunk.buildDenseCloud(quality=HighQuality, filter=AggressiveFiltering)
 
 #build mesh
 chunk.buildModel(surface=Arbitrary, interpolation=EnabledInterpolation)
